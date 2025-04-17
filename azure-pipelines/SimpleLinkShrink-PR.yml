@@ -1,0 +1,48 @@
+trigger: none
+
+pr:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfig: 'Release'
+  buildProjects: '**/*.csproj'
+  publishProjectName: 'SimpleLinkShrink'
+  environmentName: 'HS-VPS-001'
+  connectionName: 'hs-vps-001'
+
+stages:
+- stage: Build
+  jobs:
+  - job: build_dotnet
+    displayName: build and test solution
+    steps:
+      - task: NuGetToolInstaller@1
+  
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: restore
+          projects: '${{ variables.buildProjects }}'
+  
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          projects: '${{ variables.buildProjects }}'
+          arguments: '-c ${{ variables.buildConfig }}'
+          
+      - task: DotNetCoreCLI@2
+        displayName: Stage
+        inputs:
+          command: publish
+          publishWebProjects: true
+          arguments: '-c ${{ variables.buildConfig }} -o $(Build.ArtifactStagingDirectory) --no-build'
+          zipAfterPublish: true
+      
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish Pipeline Artifacts'
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)'
+  
