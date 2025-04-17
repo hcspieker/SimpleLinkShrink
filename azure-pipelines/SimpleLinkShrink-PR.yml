@@ -46,35 +46,3 @@ stages:
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)'
   
-- stage: Deploy
-  dependsOn: Build
-  jobs:
-  - deployment: deploy_to_server
-    displayName: deploy to server
-    workspace:
-      clean: all
-    environment: ${{ variables.environmentName }}
-    strategy:
-     runOnce:
-      deploy:
-       steps:
-        - task: ExtractFiles@1
-          inputs:
-            archiveFilePatterns: '$(Agent.BuildDirectory)/**/${{ variables.publishProjectName }}.zip'
-            destinationFolder: '$(Agent.BuildDirectory)/extracted'
-            cleanDestinationFolder: true
-            overwriteExistingFiles: false
-  
-        - task: CopyFilesOverSSH@0
-          displayName: 'deploy files to server'
-          inputs:
-           sshEndpoint: '${{ variables.connectionName }}'
-           sourceFolder: '$(Agent.BuildDirectory)/extracted'
-           targetFolder: '$(webAppRootFolder)/${{ variables.publishProjectName }}'
-  
-        - task: SSH@0
-          displayName: 'Restart web app service'
-          inputs:
-            sshEndpoint: '${{ variables.connectionName }}'
-            commands: 'sudo systemctl restart $(webAppServiceName)'
-  
