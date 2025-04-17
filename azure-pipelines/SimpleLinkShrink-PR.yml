@@ -1,0 +1,80 @@
+trigger: none
+
+pr:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfig: 'Release'
+  buildProjects: '**/*.csproj'
+  publishProjectName: 'SimpleLinkShrink'
+  environmentName: 'HS-VPS-001'
+  connectionName: 'hs-vps-001'
+
+stages:
+- stage: Build
+  jobs:
+  - job: build_dotnet
+    displayName: build and test solution
+    steps:
+      - task: NuGetToolInstaller@1
+  
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: restore
+          projects: '${{ variables.buildProjects }}'
+  
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          projects: '${{ variables.buildProjects }}'
+          arguments: '-c ${{ variables.buildConfig }}'
+          
+      - task: DotNetCoreCLI@2
+        displayName: Stage
+        inputs:
+          command: publish
+          publishWebProjects: true
+          arguments: '-c ${{ variables.buildConfig }} -o $(Build.ArtifactStagingDirectory) --no-build'
+          zipAfterPublish: true
+      
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish Pipeline Artifacts'
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)'
+  
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - deployment: deploy_to_server
+    displayName: deploy to server
+    workspace:
+      clean: all
+    environment: ${{ variables.environmentName }}
+    strategy:
+     runOnce:
+      deploy:
+       steps:
+        - task: ExtractFiles@1
+          inputs:
+            archiveFilePatterns: '$(Agent.BuildDirectory)/**/${{ variables.publishProjectName }}.zip'
+            destinationFolder: '$(Agent.BuildDirectory)/extracted'
+            cleanDestinationFolder: true
+            overwriteExistingFiles: false
+  
+        - task: CopyFilesOverSSH@0
+          displayName: 'deploy files to server'
+          inputs:
+           sshEndpoint: '${{ variables.connectionName }}'
+           sourceFolder: '$(Agent.BuildDirectory)/extracted'
+           targetFolder: '$(webAppRootFolder)/${{ variables.publishProjectName }}'
+  
+        - task: SSH@0
+          displayName: 'Restart web app service'
+          inputs:
+            sshEndpoint: '${{ variables.connectionName }}'
+            commands: 'sudo systemctl restart $(webAppServiceName)'
+  
