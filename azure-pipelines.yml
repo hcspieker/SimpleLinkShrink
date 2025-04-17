@@ -18,6 +18,7 @@ jobs:
       displayName: Restore
       inputs:
         command: restore
+        projects: '${{ variables.buildProjects }}'
 
     - task: DotNetCoreCLI@2
       displayName: Build
