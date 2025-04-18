@@ -26,6 +26,12 @@ stages:
         inputs:
           command: restore
           projects: '${{ variables.buildProjects }}'
+          
+      - script: |
+          dotnet tool install -g Microsoft.Web.LibraryManager.Cli
+          cd ${{ variables.publishProjectName }}
+          libman restore
+        displayName: Restore libman dependencies
   
       - task: DotNetCoreCLI@2
         displayName: Build
