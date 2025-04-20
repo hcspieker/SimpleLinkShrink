@@ -1,0 +1,55 @@
+﻿@using SimpleLinkShrink.Models
+@model CreateShortlinkResultViewModel
+
+@{
+    ViewBag.Title = "Created a new short link";
+}
+
+<div class="row">
+    <div class="col"></div>
+    <div class="col">
+        <div class="card border-secondary w-100" style="display: inline-block">
+            <div class="card-body">
+                <h4 class="card-title text-center">
+                    @ViewBag.Title
+                </h4>
+                <div class="card-text">
+                    <div class="form-floating mb-3">
+                        <input type="url" class="form-control rounded-3" asp-for="TargetUrl" disabled>
+                        <label for="TargetUrl">Target url</label>
+                    </div>
+                    @if (Model.ExpirationDate != null)
+                    {
+                        <div class="form-floating mb-3">
+                            <input type="url" class="form-control rounded-3" asp-for="ExpirationDate" disabled>
+                            <label for="floatingInput">Valid until</label>
+                        </div>
+                    }
+                    <div class="input-group mb-3">
+                        <div class="form-floating">
+                            <input type="url" class="form-control" asp-for="InternalUrl" disabled>
+                            <label for="InternalUrl">Shortlink</label>
+                        </div>
+                        <span class="input-group-text" onclick="copyToClipboard('@Model.InternalUrl')">
+                            <i class="bi bi-clipboard"></i>
+                        </span>
+                    </div>
+                    <div class="float-end mb-3">
+                        <a href="@Model.InternalUrl" class="btn btn-primary btn-sm" target="_blank">Test generated link</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col"></div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function copyToClipboard(text){
+            navigator.clipboard.writeText(text);
+
+            toastr.success(text, "Copied link!");
+        }
+    </script>
+}
