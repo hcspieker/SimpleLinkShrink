@@ -401,3 +401,8 @@ FodyWeavers.xsd
 
 # libman
 **/wwwroot/lib/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
