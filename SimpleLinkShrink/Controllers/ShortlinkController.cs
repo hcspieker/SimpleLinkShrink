@@ -20,26 +20,8 @@ namespace SimpleLinkShrink.Controllers
         {
             try
             {
-                var result = await _repository.GetTargetUrl(alias);
-                return Redirect(result);
-            }
-            catch (ShortlinkNotFoundException)
-            {
-                return RedirectToRoute(new
-                {
-                    controller = "Home",
-                    action = "PageNotFound"
-                });
-            }
-        }
-
-        [HttpGet("d/{alias}")]
-        public async Task<ActionResult> Delete(string alias)
-        {
-            try
-            {
-                await _repository.DeleteShortlink(alias);
-                return Ok($"Removed shortlink {new Uri(Request.GetBaseUrl(), $"s/{alias}").ToString()}");
+                var result = await _repository.Get(alias);
+                return Redirect(result.TargetUrl);
             }
             catch (ShortlinkNotFoundException)
             {

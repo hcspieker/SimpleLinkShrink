@@ -4,8 +4,8 @@ namespace SimpleLinkShrink.Data
 {
     public interface IRepository
     {
-        Task<Shortlink> GenerateShortlink(string targetUrl);
-        Task<string> GetTargetUrl(string alias);
-        Task DeleteShortlink(string alias);
+        Task<Shortlink> Create(string targetUrl);
+        Task<Shortlink> Get(string alias);
+        Task Delete(int id);
     }
 }
