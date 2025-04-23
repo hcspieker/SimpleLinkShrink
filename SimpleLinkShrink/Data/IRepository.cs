@@ -6,5 +6,6 @@ namespace SimpleLinkShrink.Data
     {
         Task<Shortlink> GenerateShortlink(string targetUrl);
         Task<string> GetTargetUrl(string alias);
+        Task DeleteShortlink(string alias);
     }
 }

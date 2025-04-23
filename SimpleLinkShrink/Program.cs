@@ -3,6 +3,7 @@ using SimpleLinkShrink.BackgroundServices;
 using SimpleLinkShrink.Configuration;
 using SimpleLinkShrink.Data;
 using SimpleLinkShrink.Data.Entity;
+using SimpleLinkShrink.Middlewares;
 using SimpleLinkShrink.Util;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,7 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseNotFound();
 app.UseRouting();
 
 app.MapStaticAssets();
