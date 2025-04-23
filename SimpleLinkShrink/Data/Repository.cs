@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SimpleLinkShrink.Exceptions;
 using SimpleLinkShrink.Configuration;
 using SimpleLinkShrink.Data.Entity;
+using SimpleLinkShrink.Exceptions;
 using SimpleLinkShrink.Util;
 
 namespace SimpleLinkShrink.Data
@@ -55,6 +55,21 @@ namespace SimpleLinkShrink.Data
                 var result = await _context.Shortlinks.SingleAsync(x => x.Alias == alias);
 
                 return result.TargetUrl;
+            }
+            catch (InvalidOperationException)
+            {
+                throw new ShortlinkNotFoundException($"No shortlink was found for the alias {alias}.");
+            }
+        }
+
+        public async Task DeleteShortlink(string alias)
+        {
+            try
+            {
+                var entry = await _context.Shortlinks.SingleAsync(x => x.Alias == alias);
+
+                _context.Shortlinks.Remove(entry);
+                await _context.SaveChangesAsync();
             }
             catch (InvalidOperationException)
             {

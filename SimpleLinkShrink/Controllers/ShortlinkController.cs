@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SimpleLinkShrink.Data;
 using SimpleLinkShrink.Exceptions;
+using SimpleLinkShrink.Extensions;
 
 namespace SimpleLinkShrink.Controllers
 {
-    [Route("s")]
     [ApiController]
     public class ShortlinkController : ControllerBase
     {
@@ -15,7 +15,7 @@ namespace SimpleLinkShrink.Controllers
             _repository = repository;
         }
 
-        [HttpGet("{alias}")]
+        [HttpGet("s/{alias}")]
         public async Task<ActionResult> Get(string alias)
         {
             try
@@ -25,7 +25,29 @@ namespace SimpleLinkShrink.Controllers
             }
             catch (ShortlinkNotFoundException)
             {
-                return NotFound();
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "PageNotFound"
+                });
+            }
+        }
+
+        [HttpGet("d/{alias}")]
+        public async Task<ActionResult> Delete(string alias)
+        {
+            try
+            {
+                await _repository.DeleteShortlink(alias);
+                return Ok($"Removed shortlink {new Uri(Request.GetBaseUrl(), $"s/{alias}").ToString()}");
+            }
+            catch (ShortlinkNotFoundException)
+            {
+                return RedirectToRoute(new
+                {
+                    controller = "Home",
+                    action = "PageNotFound"
+                });
             }
         }
     }

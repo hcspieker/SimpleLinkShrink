@@ -36,7 +36,8 @@ namespace SimpleLinkShrink.Controllers
             var result = new CreateShortlinkResultViewModel
             {
                 TargetUrl = createdUrl.TargetUrl,
-                InternalUrl = new Uri(Request.GetBaseUrl(), $"s/{createdUrl.Alias}").ToString(),
+                InternalAccessUrl = new Uri(Request.GetBaseUrl(), $"s/{createdUrl.Alias}").ToString(),
+                InternalDeleteUrl = new Uri(Request.GetBaseUrl(), $"d/{createdUrl.Alias}").ToString(),
                 ExpirationDate = createdUrl.ExpirationDate
             };
 
@@ -46,6 +47,13 @@ namespace SimpleLinkShrink.Controllers
         public IActionResult Error()
         {
             return View();
+        }
+
+        [Route("404")]
+        public IActionResult PageNotFound()
+        {
+            Response.StatusCode = 404;
+            return View("NotFound");
         }
     }
 }
