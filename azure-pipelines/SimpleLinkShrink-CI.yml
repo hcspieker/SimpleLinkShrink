@@ -70,6 +70,18 @@ stages:
             destinationFolder: '$(Agent.BuildDirectory)/extracted'
             cleanDestinationFolder: true
             overwriteExistingFiles: false
+
+        - bash: |
+            commitMessage="$(Build.SourceVersionMessage)"
+            echo "Commit message: $commitMessage"
+
+            if [[ "$commitMessage" == *"DEPLOY_LIBS"* ]]; then
+              echo "Skip deleting lib folder"
+            else
+              echo "Deleting lib folder"
+              rm -rf $(Agent.BuildDirectory)/extracted/wwwroot/lib
+            fi
+          displayName: Remove lib folder if necessary
   
         - task: CopyFilesOverSSH@0
           displayName: 'deploy files to server'
