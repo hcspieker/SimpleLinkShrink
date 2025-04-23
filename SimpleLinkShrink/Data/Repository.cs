@@ -22,7 +22,7 @@ namespace SimpleLinkShrink.Data
             _optionsMonitor = optionsMonitor;
         }
 
-        public async Task<Shortlink> GenerateShortlink(string targetUrl)
+        public async Task<Shortlink> Create(string targetUrl)
         {
             var entity = new Shortlink
             {
@@ -48,13 +48,11 @@ namespace SimpleLinkShrink.Data
             return entity;
         }
 
-        public async Task<string> GetTargetUrl(string alias)
+        public async Task<Shortlink> Get(string alias)
         {
             try
             {
-                var result = await _context.Shortlinks.SingleAsync(x => x.Alias == alias);
-
-                return result.TargetUrl;
+                return await _context.Shortlinks.SingleAsync(x => x.Alias == alias);
             }
             catch (InvalidOperationException)
             {
@@ -62,18 +60,18 @@ namespace SimpleLinkShrink.Data
             }
         }
 
-        public async Task DeleteShortlink(string alias)
+        public async Task Delete(int id)
         {
             try
             {
-                var entry = await _context.Shortlinks.SingleAsync(x => x.Alias == alias);
+                var entry = await _context.Shortlinks.SingleAsync(x => x.Id == id);
 
                 _context.Shortlinks.Remove(entry);
                 await _context.SaveChangesAsync();
             }
             catch (InvalidOperationException)
             {
-                throw new ShortlinkNotFoundException($"No shortlink was found for the alias {alias}.");
+                throw new ShortlinkNotFoundException($"No shortlink was found for the id {id}.");
             }
         }
     }

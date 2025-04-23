@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using SimpleLinkShrink.Data;
+using SimpleLinkShrink.Exceptions;
 using SimpleLinkShrink.Extensions;
 using SimpleLinkShrink.Models;
 
@@ -20,7 +22,7 @@ namespace SimpleLinkShrink.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateUrl(CreateShortlinkViewModel model)
+        public async Task<ActionResult> CreateUrl(ShortlinkCreateViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(nameof(Index), model);
@@ -31,17 +33,48 @@ namespace SimpleLinkShrink.Controllers
                 return View(nameof(Index), model);
             }
 
-            var createdUrl = await _repository.GenerateShortlink(model.TargetUrl!);
+            var result = await _repository.Create(model.TargetUrl!);
 
-            var result = new CreateShortlinkResultViewModel
+            return RedirectToAction(nameof(State), new { alias = result.Alias });
+        }
+
+        [Route("State/{alias}")]
+        public async Task<ActionResult> State(string alias)
+        {
+            try
             {
-                TargetUrl = createdUrl.TargetUrl,
-                InternalAccessUrl = new Uri(Request.GetBaseUrl(), $"s/{createdUrl.Alias}").ToString(),
-                InternalDeleteUrl = new Uri(Request.GetBaseUrl(), $"d/{createdUrl.Alias}").ToString(),
-                ExpirationDate = createdUrl.ExpirationDate
-            };
+                var result = await _repository.Get(alias);
 
-            return View("Created", result);
+                var model = new ShortlinkDetailViewModel
+                {
+                    Id = result.Id,
+                    TargetUrl = result.TargetUrl,
+                    ShortlinkUrl = new Uri(Request.GetBaseUrl(), $"s/{result.Alias}").ToString(),
+                    StatusUrl = Request.GetDisplayUrl(),
+                    ExpirationDate = result.ExpirationDate
+                };
+
+                return View(model);
+            }
+            catch (ShortlinkNotFoundException)
+            {
+                return RedirectToAction(nameof(PageNotFound));
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _repository.Delete(id);
+
+                return View();
+            }
+            catch (ShortlinkNotFoundException)
+            {
+                return RedirectToAction(nameof(PageNotFound));
+            }
         }
 
         public IActionResult Error()
